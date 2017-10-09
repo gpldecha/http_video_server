@@ -3,6 +3,10 @@
 #include <string>
 #include <memory>
 #include <iostream>
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+using namespace cv;
+
 
 using namespace boost;
 using namespace boost::system;
@@ -184,6 +188,20 @@ void accept_and_run(ip::tcp::acceptor& acceptor, io_service& io_service)
 
 int main(int argc, const char * argv[])
 {
+    Mat image;
+        image = imread("../image.jpg", CV_LOAD_IMAGE_COLOR);   // Read the file
+
+        if(! image.data )                              // Check for invalid input
+        {
+            std::cout <<  "Could not open or find the image" << std::endl ;
+            return -1;
+        }
+
+        namedWindow( "Display window", WINDOW_AUTOSIZE );// Create a window for display.
+        imshow( "Display window", image );                   // Show our image inside it.
+
+        waitKey(0);
+
    io_service io_service;
    ip::tcp::endpoint endpoint{ip::tcp::v4(), 8080};
    ip::tcp::acceptor acceptor{io_service, endpoint};
