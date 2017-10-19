@@ -5,6 +5,8 @@
 #include <iostream>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include "http_video_server/video_capture.h"
+
 using namespace cv;
 
 
@@ -188,28 +190,18 @@ void accept_and_run(ip::tcp::acceptor& acceptor, io_service& io_service)
 
 int main(int argc, const char * argv[])
 {
-    Mat image;
-        image = imread("../image.jpg", CV_LOAD_IMAGE_COLOR);   // Read the file
 
-        if(! image.data )                              // Check for invalid input
-        {
-            std::cout <<  "Could not open or find the image" << std::endl ;
-            return -1;
-        }
+    ThreadVideoCapture thread_video_capture;
 
-        namedWindow( "Display window", WINDOW_AUTOSIZE );// Create a window for display.
-        imshow( "Display window", image );                   // Show our image inside it.
-
-        waitKey(0);
-
-   io_service io_service;
-   ip::tcp::endpoint endpoint{ip::tcp::v4(), 8080};
-   ip::tcp::acceptor acceptor{io_service, endpoint};
+    io_service io_service;
+    ip::tcp::endpoint endpoint{ip::tcp::v4(), 8080};
+    ip::tcp::acceptor acceptor{io_service, endpoint};
    
-   acceptor.listen();
-   accept_and_run(acceptor, io_service);
+    acceptor.listen();
+    accept_and_run(acceptor, io_service);
    
-   io_service.run();
+    io_service.run();
+
    return 0;
 }
 
