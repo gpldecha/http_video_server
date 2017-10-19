@@ -1,99 +1,42 @@
-#include <ctime>
-#include <iostream>
 #include <string>
-#include <boost/asio.hpp>
-#include <boost/thread.hpp>
+#include <vector>
+#include <iostream>
+#include <chrono>
+#include <thread>
 
+#include "video_capture.h"
+#include "video_server.h"
 
-using boost::asio::ip::tcp;
-
-#include "opencv2/opencv.hpp"
-
-class ThreadVideoCapture{
-
-public:
-
-	ThreadVideoCapture(){
-    video_thread = boost::thread(boost::bind(&ThreadVideoCapture::run, this));
-	}
-
-	cv::Mat get_frame(){
-		return frame;
-	}
-
-private:
-
-	void run(){
-
-    cv::VideoCapture cap(0); // open the default camera
-    if(!cap.isOpened()){  // check if we succeeded
-        std::cout<< "cv::VideoCapture failed to open!" << std::endl;
-        return;
-    }
-
-    std::cout<< "starting video capture..." << std::endl;
-    cv::Mat edges;
-    cv::namedWindow("edges",1);
-    for(;;){
-           cap >> frame; // get a new frame from camera
-           cv::cvtColor(frame, edges, CV_BGR2GRAY);
-           cv::GaussianBlur(edges, edges, cv::Size(7,7), 1.5, 1.5);
-           cv::Canny(edges, edges, 0, 30, 3);
-           cv::imshow("edges", edges);
-           if(cv::waitKey(30) >= 0) break;
-       }
-		 }
-
-	 private:
-
-		 boost::thread video_thread;
-		 cv::Mat frame;
-
-};
+typedef std::chrono::duration<int, std::micro> microseconds_type;
 
 
 int main(int argc, char** argv){
 
-	ThreadVideoCapture thread_video_capture;
+
+    ThreadVideoCapture thread_video_capture;
+    ThreadVideoServer video_server;
 
 
-	try{
-    boost::asio::io_service io_service;
-    tcp::endpoint endpoint(tcp::v4(), 9800);
-    tcp::acceptor acceptor(io_service, endpoint);
+    double dt = 0.1;
+    microseconds_type loop_rate_micro_s = microseconds_type(std::size_t(dt * 1000000.0));
+    auto start_time  = std::chrono::steady_clock::now();
+    auto end_time   = start_time + loop_rate_micro_s;
 
-		std::stringstream ssOut;
+    std::string byte_string;
 
+    sleep(1.0);
 
-    for (;;)
-    {
-      tcp::iostream stream;
-      boost::system::error_code ec;
-      acceptor.accept(*stream.rdbuf(), ec);
-      if (!ec)
-      {
+    while(true){
+        start_time = std::chrono::steady_clock::now();
+        end_time   = start_time + loop_rate_micro_s;
 
-				stream << "HTTP/1.0 200 OK\r\n";
-				stream << "Server: AdxVideoServer \r\n";
-				stream << "Connection: close\r\n";
-				stream << "Max-Age: 0\r\n";
-				stream << "Expires: 0\r\n";
-				stream << "Cache-Control: no-store, no-cache, must-revalidate, pre-check=0, post-check=0, max-age=0\r\n";
-				stream << "Pragma: no-cache\r\n";
-				stream << "Content-Type: multipart/x-mixed-replace; boundary=--BoundaryString\r\n\r\n";
-				stream << "Content-Type: image/jpeg\r\n\r\n";
+        byte_string = thread_video_capture.get_frame();
+        video_server.ptr_video_server->broadcast(byte_string);
+        //video_server.broadcast(byte_string);
 
-				cv::Mat frame = thread_video_capture.get_frame();
-
-				// stream << is.rdbuf() << "\r\n\r\n" << "\r\n--" << "BoundaryString" << "\r\n";
-				stream << std::endl;
-      }
+        std::this_thread::sleep_until(end_time);
     }
-  }
-  catch (std::exception& e)
-  {
-    std::cerr << e.what() << std::endl;
-  }
 
-	return 0;
+
+    return 0;
 }

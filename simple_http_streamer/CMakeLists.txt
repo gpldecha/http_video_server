@@ -38,6 +38,6 @@ set(OSG_LIGB
 include_directories(include ${INCLUDE_DIR} ${OpenCV_INCLUDE_DIRS} ${OPENSCENEGRAPH_INCLUDE_DIR})
 
 
-add_executable(streamer main.cpp)
+add_executable(streamer main.cpp video_server.cpp tcp_connection.cpp video_capture.cpp)
 target_link_libraries(streamer GL GLU glut ${Boost_LIBRARIES} ${OSG_LIGB} ${OPENSCENEGRAPH_LIBRARIES} ${OpenCV_LIBRARIES} )
 

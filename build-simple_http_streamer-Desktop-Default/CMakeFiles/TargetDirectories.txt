@@ -1,0 +1,3 @@
+/home/guillaume/cpp_work_space/http_video_server/build-simple_http_streamer-Desktop-Default/CMakeFiles/edit_cache.dir
+/home/guillaume/cpp_work_space/http_video_server/build-simple_http_streamer-Desktop-Default/CMakeFiles/rebuild_cache.dir
+/home/guillaume/cpp_work_space/http_video_server/build-simple_http_streamer-Desktop-Default/CMakeFiles/streamer.dir
